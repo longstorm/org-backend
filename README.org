@@ -1,0 +1,16 @@
+* org-backend
+
+This library is designed to serve as both parser for org-mode files as
+well a minimal engine for storage and retrieval of application data
+(especially user data), using .org syntax (like flat file databases.)
+
+** Usage
+
+FIXME
+
+** License
+
+Copyright © 2014 FIXME
+
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.

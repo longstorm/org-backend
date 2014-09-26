@@ -1,11 +1,10 @@
 (ns org-backend.parser
   (:require [org-backend.core :refer [slurp]]))
 
-(defn basename [path]
-  (let [idx (.lastIndexOf path "/")]
-    (if (= -1 idx)
-      path
-      (subs path (inc idx)))))
+(defn basename [path ext]
+  (let [p (clojure.string/replace path ext "")
+        idx (.lastIndexOf path "/")]
+    (if (= -1 idx) p (subs p (inc idx)))))
 
 (defn org-delimiter [level]
   (clojure.string/join (repeat (inc level) "#")))
@@ -44,7 +43,7 @@
 (defn org-outline-chunks [level s]
   (->> (str "(\\n|^)\\s*" (org-delimiter level) "[^#]")
        re-pattern
-       (split s)
+       (clojure.string/split s)
        (apply filter-out-empty-chunks)))
 
 (defn parse-chunk [s]

@@ -7,7 +7,9 @@
     (if (= -1 idx) p (subs p (inc idx)))))
 
 (defn org-delimiter [level]
-  (clojure.string/join (repeat (inc level) "#")))
+  (str "(\\n|^)\\s*"
+       (clojure.string/join (repeat (inc level) "\\*"))
+       "[^*]"))
 
 (defn org-split-link [s]
   (clojure.string/split (subs s 2 (- (count s) 2)) #"\]\["))
@@ -41,7 +43,7 @@
   (into [intro] (filter-out-empty chunks)))
 
 (defn org-outline-chunks [level s]
-  (->> (str "(\\n|^)\\s*" (org-delimiter level) "[^#]")
+  (->> (org-delimiter level)
        re-pattern
        (clojure.string/split s)
        (apply filter-out-empty-chunks)))

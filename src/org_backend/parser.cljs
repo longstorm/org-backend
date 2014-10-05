@@ -96,3 +96,20 @@
 (defn org-outline-empty
   ([] (org-outline-empty ""))
   ([headline] {:headline headline, :level 0, :leafs [], :subtrees []}))
+
+(defn serialize-outline
+  ([node] (serialize-outline node false))
+  ([{:keys [headline properties level leafs subtrees]} only-subtrees?]
+     (let [frontmatter
+           (when-not only-subtrees?
+             (concat [(apply str (concat (repeat level "*")
+                                         [" " headline]))]
+                     (when (seq properties)
+                       [(str (reduce-kv (fn [s k v] (str s "  " k ": " v "\n"))
+                                         "  :PROPERTIES:\n" properties)
+                              "  :END:")])
+                     leafs))]
+       (clojure.string/join "\n" (concat
+                                  frontmatter
+                                  (when (seq subtrees)
+                                    (map serialize-outline subtrees)))))))

@@ -52,27 +52,46 @@
   (let [[headline body] (clojure.string/split s #"\n" 2)]
     (map str [headline body])))
 
-(defn org-outline-shallow-nodes [level parsed-chunks]
- (map #({:headline (first %),
-         :level (inc level)
-         :leafs (get-lines (second %))})
-      parsed-chunks))
+(defn parse-properties [prop-lines]
+  (reduce (fn [m line]
+            (let [[_ p val] (clojure.string/split line #":")]
+              (assoc m (keyword p) (clojure.string/trim val))))
+          {} (butlast (rest prop-lines))))
 
-(defn org-outline-nodes
-  ([path] (org-outline-nodes 0 false (org-file-name path) (slurp path)))
-  ([path shallow] (org-outline-nodes 0 true (org-file-name path) (slurp path)))
-  ([level title s] (org-outline-nodes level false title s))
+(defn get-leafs-and-properties [intro]
+  (let [lines (get-lines intro)]
+    (if-not (re-find #"^\s*:(properties|PROPERTIES):" (first lines))
+      [{} lines]
+      (update-in (split-at
+                  (->> lines
+                       (take-while #(not (re-find #"^\s*:(end|END):" %)))
+                       count inc inc)
+                  lines)
+                 [0] parse-properties))))
+
+(defn org-outline-shallow [level parsed-chunks]
+  (map #(let [[props leafs] (get-leafs-and-properties (second %))]
+          {:headline (first %)
+           :properties props
+           :level (inc level)
+           :leafs leafs})
+       parsed-chunks))
+
+(defn org-outline
+  ([level title s] (org-outline level false title s))
   ([level shallow title s]
      (let [[intro & chunks] (org-outline-chunks level s)
-           subtrees (map parse-chunk chunks)]
+           subtrees (map parse-chunk chunks)
+           [props leafs] (get-leafs-and-properties intro)]
        {:headline title
+        :properties props
         :level level
-        :leafs (get-lines intro)
+        :leafs leafs
         :subtrees (if shallow
-                    (org-outline-shallow-nodes level subtrees)
+                    (org-outline-shallow level subtrees)
                     (map (partial apply
-                                  (partial org-outline-nodes (inc level) false))
-                     subtrees))})))
+                                  (partial org-outline (inc level) false))
+                         subtrees))})))
 
 (defn org-outline-empty
   ([] (org-outline-empty ""))

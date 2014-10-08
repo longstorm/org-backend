@@ -78,6 +78,8 @@
        parsed-chunks))
 
 (defn org-outline
+  ([path] (org-outline 0 false (org-file-name path) (slurp path)))
+  ([path shallow] (org-outline 0 true (org-file-name path) (slurp path)))
   ([level title s] (org-outline level false title s))
   ([level shallow title s]
      (let [[intro & chunks] (org-outline-chunks level s)

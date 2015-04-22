@@ -1,10 +1,22 @@
 (ns org-backend.parser
   (:require [org-backend.core :refer [slurp]]))
 
-(defn basename [path ext]
-  (let [p (clojure.string/replace path ext "")
-        idx (.lastIndexOf path "/")]
-    (if (= -1 idx) p (subs p (inc idx)))))
+(defn basename
+  ([path]
+   (let [[p slash] (let [s (.lastIndexOf path "/")
+                         last-char (-> path count dec)
+                         q (subs path 0 last-char)]
+                     (if (and (> (count path) 0) (= s last-char))
+                       [q (.lastIndexOf q "/")]
+                       [path s]))]
+     (if (or (= -1 slash) (= 1 (count path)))
+       p
+       (subs p (inc slash)))))
+  ([path ext]
+   (let [[p ext-segment] (map (partial apply str)
+                              (split-at (- (count path) (count ext)) path))]
+     (when (= ext-segment ext)
+       (basename p)))))
 
 (defn org-delimiter [level]
   (str "(\\n|^)\\s*"

@@ -40,8 +40,10 @@
 (defn org-file-name [path]
   (basename path ".org"))
 
+(def org-file? org-file-name)
+
 (defn filter-out-empty [coll]
-  (filter (complement #{"" "\n"}) coll))
+  (remove #{"" "\n"} coll))
 
 (defn get-lines [s]
   (filter-out-empty (clojure.string/split s #"\n")))
@@ -71,8 +73,9 @@
           {} (butlast (rest prop-lines))))
 
 (defn get-leafs-and-properties [intro]
-  (let [lines (get-lines intro)]
-    (if-not (re-find #"^\s*:(properties|PROPERTIES):" (first lines))
+  (let [[line :as lines] (get-lines intro)]
+    (if-not (and (string? line)
+                 (re-find #"^\s*:(properties|PROPERTIES):" line))
       [{} lines]
       (update-in (split-at
                   (->> lines

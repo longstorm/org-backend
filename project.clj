@@ -8,11 +8,17 @@
   :aliases {"cleantest" ["do" "clean," "cljsbuild" "once," "test,"]
             "autotest" ["do" "clean," "cljsbuild" "auto" "test"]}
   :source-paths ["src"]
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2202"]
-                 [org.clojure/core.async "0.1.256.0-1bf8cf-alpha"]]
-  :profiles
-  {:dev {:dependencies [[com.cemerick/double-check "0.5.7-SNAPSHOT"]]
-         :hooks [leiningen.cljsbuild]
-         :plugins [[lein-cljsbuild "1.0.3"]
-                   [com.cemerick/clojurescript.test "0.3.0"]]}})
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.clojure/clojurescript "0.0-3196"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
+  :cljsbuild {:builds [{:source-paths ["src"]
+                        :compiler {:target :nodejs
+                                   :output-to "target/org-backend.js"
+                                   :optimizations :simple}}]}
+  :profiles {:dev {:plugins [[lein-cljsbuild "1.0.5"]
+                             [com.cemerick/clojurescript.test "0.3.3"]]
+                   :dependencies [[com.cemerick/double-check "0.6.1"]
+                                  [com.cemerick/piggieback "0.2.0"]
+                                  [org.clojure/tools.nrepl "0.2.10"]]
+                   :repl-options {:nrepl-middleware
+                                  [cemerick.piggieback/wrap-cljs-repl]}}})

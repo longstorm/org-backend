@@ -1,5 +1,6 @@
 (ns org-backend.parser
-  (:require [org-backend.core :refer [slurp]]))
+  (:require [clojure.string :as strng]
+            [org-backend.core :refer [slurp]]))
 
 (defn basename
   ([path]
@@ -20,11 +21,11 @@
 
 (defn org-delimiter [level]
   (str "(\\n|^)\\s*"
-       (clojure.string/join (repeat (inc level) "\\*"))
+       (strng/join (repeat (inc level) "\\*"))
        "[^*]"))
 
 (defn org-split-link [s]
-  (clojure.string/split (subs s 2 (- (count s) 2)) #"\]\["))
+  (strng/split (subs s 2 (- (count s) 2)) #"\]\["))
 
 (defn org-link-p [s]
   (let [[url title]
@@ -46,7 +47,7 @@
   (remove #{"" "\n"} coll))
 
 (defn get-lines [s]
-  (filter-out-empty (clojure.string/split s #"\n")))
+  (filter-out-empty (strng/split s #"\n")))
 
 (defn filter-out-empty-chunks
   "The first chunk (the intro) is never filtered out since an empty
@@ -59,17 +60,17 @@
 (defn org-outline-chunks [level s]
   (->> (org-delimiter level)
        re-pattern
-       (clojure.string/split s)
+       (strng/split s)
        (apply filter-out-empty-chunks)))
 
 (defn parse-chunk [s]
-  (let [[headline body] (clojure.string/split s #"\n" 2)]
+  (let [[headline body] (strng/split s #"\n" 2)]
     (map str [headline body])))
 
 (defn parse-properties [prop-lines]
   (reduce (fn [m line]
-            (let [[_ p val] (clojure.string/split line #":")]
-              (assoc m (keyword p) (clojure.string/trim val))))
+            (let [[_ p val] (strng/split line #":")]
+              (assoc m (keyword p) (strng/trim val))))
           {} (butlast (rest prop-lines))))
 
 (defn get-leafs-and-properties [intro]
@@ -117,16 +118,16 @@
 (defn serialize-outline
   ([node] (serialize-outline node false))
   ([{:keys [headline properties level leafs subtrees]} only-subtrees?]
-     (let [frontmatter
-           (when-not only-subtrees?
-             (concat [(apply str (concat (repeat level "*")
-                                         [" " headline]))]
-                     (when (seq properties)
-                       [(str (reduce-kv (fn [s k v] (str s "  " k ": " v "\n"))
-                                         "  :PROPERTIES:\n" properties)
-                              "  :END:")])
-                     leafs))]
-       (clojure.string/join "\n" (concat
-                                  frontmatter
-                                  (when (seq subtrees)
-                                    (map serialize-outline subtrees)))))))
+   (let [frontmatter
+         (when-not only-subtrees?
+           (concat [(apply str (concat (repeat level "*")
+                                       [" " headline]))]
+                   (when (seq properties)
+                     [(str (reduce-kv (fn [s k v] (str s "  " k ": " v "\n"))
+                                      "  :PROPERTIES:\n" properties)
+                           "  :END:")])
+                   leafs))]
+     (strng/join "\n" (concat
+                       frontmatter
+                       (when (seq subtrees)
+                         (map serialize-outline subtrees)))))))

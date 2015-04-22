@@ -1,4 +1,4 @@
-(defproject longstorm/org-backend "0.1.8"
+(defproject longstorm/org-backend "0.1.9"
   :description "Parse or store data in .org syntax from the JVM or Node.js"
   :url "https://github.com/longstorm/org-backend"
   :license {:name "Eclipse Public License"
